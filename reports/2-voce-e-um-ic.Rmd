@@ -40,6 +40,33 @@ glimpse(lastfm)
 Utilizaremos ICs para estimar duas métricas sobre os usuários do LastFM em geral durante um período de 6 meses. Em ambos os casos faremos isso a partir de uma amostra de 300 usuários. As duas métricas são: 
 
 1. Qual a proporção de novos artistas em geral escutada por usuários?
+
+```{r}
+
+lastfm_ajustada <- lastfm %>% mutate(proporcao = (news/(news+old)))
+
+funcao_theta = function(df) {
+  df %>%
+    pull(proporcao) %>%
+    mean() ## mudar aqui a estatística
+}
+
+theta = funcao_theta(lastfm_ajustada)
+
+amostras = tibble(amostra = 1:1000) %>% # faremos 1000 vezes
+  mutate(theta_c = map_dbl(amostra, ~ lastfm_ajustada %>% 
+                                       sample_n(100) %>%  
+                                       funcao_theta()))
+
+amostras
+
+amostras %>% 
+  ggplot(aes(theta_c)) + 
+  geom_histogram(binwidth = .5, fill = "white", colour = "darkgrey") + 
+  geom_vline(xintercept = theta) 
+
+```
+
 2. Para os usuários que gostam de música muito pop (mediana_pop > 5), qual a correlação entre a popularidade mediana dos artistas escutado e a proporção dos artistas escutados que eram novos. 
 
 Crie intervalos com 95% de confiança.
